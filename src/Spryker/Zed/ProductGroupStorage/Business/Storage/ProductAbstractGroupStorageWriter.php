@@ -5,25 +5,41 @@
  * Use of this software requires acceptance of the Evaluation License Agreement. See LICENSE file.
  */
 
-namespace Spryker\Zed\ProductGroupStorage\Communication\Plugin\Event\Listener;
+namespace Spryker\Zed\ProductGroupStorage\Business\Storage;
 
 use Generated\Shared\Transfer\ProductAbstractGroupStorageTransfer;
 use Orm\Zed\Product\Persistence\Base\SpyProductAbstractLocalizedAttributes;
 use Orm\Zed\ProductGroupStorage\Persistence\SpyProductAbstractGroupStorage;
-use Spryker\Zed\Kernel\Communication\AbstractPlugin;
+use Spryker\Zed\ProductGroupStorage\Persistence\ProductGroupStorageQueryContainerInterface;
 
-/**
- * @method \Spryker\Zed\ProductGroupStorage\Persistence\ProductGroupStorageQueryContainerInterface getQueryContainer()
- * @method \Spryker\Zed\ProductGroupStorage\Communication\ProductGroupStorageCommunicationFactory getFactory()
- */
-class AbstractProductAbstractGroupStorageListener extends AbstractPlugin
+class ProductAbstractGroupStorageWriter implements ProductAbstractGroupStorageWriterInterface
 {
+    /**
+     * @var \Spryker\Zed\ProductGroupStorage\Persistence\ProductGroupStorageQueryContainerInterface
+     */
+    protected $queryContainer;
+
+    /**
+     * @var bool
+     */
+    protected $isSendingToQueue = true;
+
+    /**
+     * @param \Spryker\Zed\ProductGroupStorage\Persistence\ProductGroupStorageQueryContainerInterface $queryContainer
+     * @param bool $isSendingToQueue
+     */
+    public function __construct(ProductGroupStorageQueryContainerInterface $queryContainer, $isSendingToQueue)
+    {
+        $this->queryContainer = $queryContainer;
+        $this->isSendingToQueue = $isSendingToQueue;
+    }
+
     /**
      * @param array $productAbstractIds
      *
      * @return void
      */
-    protected function publish(array $productAbstractIds)
+    public function publish(array $productAbstractIds)
     {
         $groupedProductAbstractIds = $this->getGroupedProductAbstractIdsByGroupIds($productAbstractIds);
         $allProductAbstractIds = $this->getProductAbstractIds($groupedProductAbstractIds, $productAbstractIds);
@@ -45,6 +61,19 @@ class AbstractProductAbstractGroupStorageListener extends AbstractPlugin
     }
 
     /**
+     * @param array $productAbstractIds
+     *
+     * @return void
+     */
+    public function unpublish(array $productAbstractIds)
+    {
+        $spyProductAbstractGroupStorageEntities = $this->findProductAbstractGroupStorageEntitiesByProductAbstractIds($productAbstractIds);
+        foreach ($spyProductAbstractGroupStorageEntities as $spyProductAbstractGroupStorageEntity) {
+            $spyProductAbstractGroupStorageEntity->delete();
+        }
+    }
+
+    /**
      * @param array $uniqueProductAbstractIds
      * @param array $spyProductAbstractGroupStorageEntities
      * @param array $groupedProductAbstractIds
@@ -56,9 +85,11 @@ class AbstractProductAbstractGroupStorageListener extends AbstractPlugin
         foreach ($uniqueProductAbstractIds as $productAbstractId) {
             if (isset($spyProductAbstractGroupStorageEntities[$productAbstractId])) {
                 $this->storeDataSet($productAbstractId, $groupedProductAbstractIds, $spyProductAbstractGroupStorageEntities[$productAbstractId]);
-            } else {
-                $this->storeDataSet($productAbstractId, $groupedProductAbstractIds);
+
+                continue;
             }
+
+            $this->storeDataSet($productAbstractId, $groupedProductAbstractIds);
         }
     }
 
@@ -89,7 +120,7 @@ class AbstractProductAbstractGroupStorageListener extends AbstractPlugin
 
         $spyProductStorageGroupEntity->setFkProductAbstract($productAbstractId);
         $spyProductStorageGroupEntity->setData($productAbstractGroupStorageTransfer->toArray());
-        $spyProductStorageGroupEntity->setStore($this->getStoreName());
+        $spyProductStorageGroupEntity->setIsSendingToQueue($this->isSendingToQueue);
         $spyProductStorageGroupEntity->save();
     }
 
@@ -210,7 +241,7 @@ class AbstractProductAbstractGroupStorageListener extends AbstractPlugin
      */
     protected function findProductGroupAbstractEntitiesByProductGroupIds(array $productGroupIds)
     {
-        return $this->getQueryContainer()->queryProductAbstractGroupByGroupIds($productGroupIds)->find()->getData();
+        return $this->queryContainer->queryProductAbstractGroupByGroupIds($productGroupIds)->find()->getData();
     }
 
     /**
@@ -220,7 +251,7 @@ class AbstractProductAbstractGroupStorageListener extends AbstractPlugin
      */
     protected function findProductGroupAbstractEntitiesByProductAbstractIds(array $productAbstractIds)
     {
-        return $this->getQueryContainer()->queryProductAbstractGroupByProductAbstractIds($productAbstractIds)->find()->toKeyIndex('fkProductGroup');
+        return $this->queryContainer->queryProductAbstractGroupByProductAbstractIds($productAbstractIds)->find()->toKeyIndex('fkProductGroup');
     }
 
     /**
@@ -230,7 +261,7 @@ class AbstractProductAbstractGroupStorageListener extends AbstractPlugin
      */
     protected function findProductAbstractLocalizedWithGroupEntities(array $productAbstractIds)
     {
-        return $this->getQueryContainer()->queryProductAbstractLocalizedWithGroupByIds($productAbstractIds)->find()->getData();
+        return $this->queryContainer->queryProductAbstractLocalizedWithGroupByIds($productAbstractIds)->find()->getData();
     }
 
     /**
@@ -240,7 +271,7 @@ class AbstractProductAbstractGroupStorageListener extends AbstractPlugin
      */
     protected function findProductAbstractLocalizedWithEntities(array $productAbstractIds)
     {
-        return $this->getQueryContainer()->queryProductAbstractLocalizedByIds($productAbstractIds)->find()->getData();
+        return $this->queryContainer->queryProductAbstractLocalizedByIds($productAbstractIds)->find()->getData();
     }
 
     /**
@@ -250,20 +281,12 @@ class AbstractProductAbstractGroupStorageListener extends AbstractPlugin
      */
     protected function findProductAbstractGroupStorageEntitiesByProductAbstractIds(array $productAbstractIds)
     {
-        $productAbstractGroupStorageEntities = $this->getQueryContainer()->queryProductAbstractGroupStorageByIds($productAbstractIds)->find();
+        $productAbstractGroupStorageEntities = $this->queryContainer->queryProductAbstractGroupStorageByIds($productAbstractIds)->find();
         $productAbstractStorageEntitiesById = [];
         foreach ($productAbstractGroupStorageEntities as $productAbstractGroupStorageEntity) {
             $productAbstractStorageEntitiesById[$productAbstractGroupStorageEntity->getFkProductAbstract()] = $productAbstractGroupStorageEntity;
         }
 
         return $productAbstractStorageEntitiesById;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getStoreName()
-    {
-        return $this->getFactory()->getStore()->getStoreName();
     }
 }
