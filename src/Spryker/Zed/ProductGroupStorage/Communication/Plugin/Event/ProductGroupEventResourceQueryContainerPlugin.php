@@ -19,7 +19,7 @@ use Spryker\Zed\ProductGroup\Dependency\ProductGroupEvents;
  * @method \Spryker\Zed\ProductGroupStorage\Business\ProductGroupStorageFacadeInterface getFacade()
  * @method \Spryker\Zed\ProductGroupStorage\Communication\ProductGroupStorageCommunicationFactory getFactory()
  */
-class ProductGroupEventResourcePlugin extends AbstractPlugin implements EventResourceQueryContainerPluginInterface
+class ProductGroupEventResourceQueryContainerPlugin extends AbstractPlugin implements EventResourceQueryContainerPluginInterface
 {
     /**
      * Specification:
