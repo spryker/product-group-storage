@@ -11,9 +11,6 @@ use Spryker\Zed\ProductGroupStorage\ProductGroupStorageConfig;
 
 class ProductGroupStorageConfigMock extends ProductGroupStorageConfig
 {
-    /**
-     * @return bool
-     */
     public function isSendingToQueue(): bool
     {
         return false;

@@ -31,10 +31,6 @@ class ProductGroupStorageReader implements ProductGroupStorageReaderInterface
      */
     protected static $storageKeyBuilder;
 
-    /**
-     * @param \Spryker\Client\ProductGroupStorage\Dependency\Client\ProductGroupStorageToStorageClientInterface $storageClient
-     * @param \Spryker\Client\ProductGroupStorage\Dependency\Service\ProductGroupStorageToSynchronizationServiceInterface $synchronizationService
-     */
     public function __construct(
         ProductGroupStorageToStorageClientInterface $storageClient,
         ProductGroupStorageToSynchronizationServiceInterface $synchronizationService
@@ -66,9 +62,6 @@ class ProductGroupStorageReader implements ProductGroupStorageReaderInterface
         return $productAbstractGroupStorageTransfer;
     }
 
-    /**
-     * @return \Spryker\Service\Synchronization\Dependency\Plugin\SynchronizationKeyGeneratorPluginInterface
-     */
     protected function getStorageKeyBuilder(): SynchronizationKeyGeneratorPluginInterface
     {
         if (static::$storageKeyBuilder === null) {

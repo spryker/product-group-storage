@@ -44,9 +44,6 @@ class ProductGroupStorageListenerTest extends Unit
      */
     protected $productGroupTransfer;
 
-    /**
-     * @return void
-     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -68,9 +65,6 @@ class ProductGroupStorageListenerTest extends Unit
         $this->productGroupTransfer = $this->tester->haveProductGroup($productGroupOverride);
     }
 
-    /**
-     * @return void
-     */
     public function testProductAbstractGroupStorageListenerStoreData(): void
     {
         $fkProductAbstracts = $this->productGroupTransfer->getIdProductAbstracts();
@@ -96,9 +90,6 @@ class ProductGroupStorageListenerTest extends Unit
         $this->assertProductAbstractGroupStorage($beforeCount);
     }
 
-    /**
-     * @return void
-     */
     public function testProductAbstractGroupPublishStorageListenerStoreData(): void
     {
         $fkProductAbstracts = $this->productGroupTransfer->getIdProductAbstracts();
@@ -121,9 +112,6 @@ class ProductGroupStorageListenerTest extends Unit
         $this->assertProductAbstractGroupStorage($beforeCount);
     }
 
-    /**
-     * @return \Spryker\Zed\ProductGroupStorage\Business\ProductGroupStorageFacade
-     */
     protected function getProductGroupStorageFacade(): ProductGroupStorageFacade
     {
         $factory = new ProductGroupStorageBusinessFactory();
@@ -135,11 +123,6 @@ class ProductGroupStorageListenerTest extends Unit
         return $facade;
     }
 
-    /**
-     * @param int $beforeCount
-     *
-     * @return void
-     */
     protected function assertProductAbstractGroupStorage(int $beforeCount): void
     {
         $productGroupStorageCount = SpyProductAbstractGroupStorageQuery::create()->count();
