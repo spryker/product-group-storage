@@ -31,6 +31,11 @@ class ProductGroupStorageReader implements ProductGroupStorageReaderInterface
      */
     protected static $storageKeyBuilder;
 
+    /**
+     * @var array<int, \Generated\Shared\Transfer\ProductAbstractGroupStorageTransfer>
+     */
+    protected static array $productGroupCache = [];
+
     public function __construct(
         ProductGroupStorageToStorageClientInterface $storageClient,
         ProductGroupStorageToSynchronizationServiceInterface $synchronizationService
@@ -46,6 +51,10 @@ class ProductGroupStorageReader implements ProductGroupStorageReaderInterface
      */
     public function findProductGroupItemsByIdProductAbstract($idProductAbstract)
     {
+        if (isset(static::$productGroupCache[$idProductAbstract])) {
+            return static::$productGroupCache[$idProductAbstract];
+        }
+
         $synchronizationDataTransfer = new SynchronizationDataTransfer();
         $synchronizationDataTransfer
             ->setReference($idProductAbstract);
@@ -58,6 +67,8 @@ class ProductGroupStorageReader implements ProductGroupStorageReaderInterface
         if ($productGroupData) {
             $productAbstractGroupStorageTransfer->fromArray($productGroupData, true);
         }
+
+        static::$productGroupCache[$idProductAbstract] = $productAbstractGroupStorageTransfer;
 
         return $productAbstractGroupStorageTransfer;
     }
