@@ -41,4 +41,14 @@ class ProductGroupStorageConstants
      * @var string
      */
     public const PRODUCT_GROUP_RESOURCE_NAME = 'product_abstract_group';
+
+    /**
+     * Specification:
+     * - Queue name used for product group publish events.
+     *
+     * @api
+     *
+     * @var string
+     */
+    public const string PUBLISH_PRODUCT_GROUP_QUEUE = 'publish.product_group';
 }
